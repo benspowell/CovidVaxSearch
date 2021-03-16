@@ -1,0 +1,24 @@
+{
+  "name": "covidvaxsearch",
+  "version": "1.0.0",
+  "description": "Check CVS pharmacy for available covid vax appointments in Ohio",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benspowell/CovidVaxSearch.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/benspowell/CovidVaxSearch/issues"
+  },
+  "homepage": "https://github.com/benspowell/CovidVaxSearch#readme",
+  "dependencies": {
+    "aws-sdk": "^2.865.0",
+    "dotenv": "^8.2.0",
+    "unirest": "^0.6.0"
+  }
+}
