@@ -1,4 +1,7 @@
 require("dotenv").config();
+const { prettyPrintJson } = require("pretty-print-json");
+var prettyjson = require("prettyjson");
+const prettyoutput = require("prettyoutput");
 const superagent = require("superagent");
 const AWS = require("aws-sdk");
 const fs = require("fs/promises");
@@ -19,10 +22,13 @@ function sendEmail(address, subject, body) {
     },
     Source: "vax-notifications@benspowell.com",
   };
-  ses.sendEmail(params, function (err, data) {
-    console.log("Error: " + err);
-    console.log("Data: " + data);
-  });
+  console.log(body);
+  return ses
+    .sendEmail(params, function (err, data) {
+      console.log("Error: " + err);
+      console.log("Data: " + data);
+    })
+    .promise();
 }
 
 function getAppointmentsByZip(zip) {
@@ -112,18 +118,32 @@ exports.handler = async (event, context, callback) => {
   }
   console.log(appointments);
 
-  sendEmail(
+  await sendEmail(
     "hello@benspowell.com",
     appointments.length + " Appointments Found",
     `
     <h1>Appointment Data</h1>
-    <p>${JSON.stringify(appointments)}</p>
+    <div>
+    ${
+      appointments.length > 0
+        ? appointments.map(
+            (el) =>
+              `<h3>CVS Appointment</h3><p>${el.address}</p><p>${el.date}</p>`
+          )
+        : "No Appointments"
+    }
+    </div>
 
-    <h1>Errors</h1>
-    <p>${JSON.stringify(errors)}</p>
+    <h2>Errors</h2>
+    <div>
+    ${JSON.stringify({ errors: errors })}
+    </div>
 
-    <h1>All Responses</h1>
-    <p>${JSON.stringify(allResponses)}</p>
+    <h2>All Responses</h2>
+    <div>
+    ${JSON.stringify({ all_responses: allResponses })}
+    </div>
     `
   );
 };
+exports.handler();
