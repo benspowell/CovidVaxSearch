@@ -1,115 +1,180 @@
 require("dotenv").config();
-const { prettyPrintJson } = require("pretty-print-json");
-var prettyjson = require("prettyjson");
-const prettyoutput = require("prettyoutput");
-const superagent = require("superagent");
 const AWS = require("aws-sdk");
 const fs = require("fs/promises");
-
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-});
-
-var ses = new AWS.SES({ region: "us-east-1" });
-
-function sendEmail(address, subject, body) {
-  var params = {
-    Destination: { ToAddresses: [address] },
-    Message: {
-      Body: { Html: { Data: body } },
-      Subject: { Data: subject },
-    },
-    Source: "vax-notifications@benspowell.com",
-  };
-  console.log(body);
-  return ses
-    .sendEmail(params, function (err, data) {
-      console.log("Error: " + err);
-      console.log("Data: " + data);
-    })
-    .promise();
-}
-
-function getAppointmentsByZip(zip) {
-  return superagent
-    .post(
-      "https://www.cvs.com/Services/ICEAGPV1/immunization/1.0.0/getIMZStores"
-    )
-    .send({
-      requestMetaData: {
-        appName: "CVS_WEB",
-        lineOfBusiness: "RETAIL",
-        channelName: "WEB",
-        deviceType: "DESKTOP",
-        deviceToken: "7777",
-        apiKey: "a2ff75c6-2da7-4299-929d-d670d827ab4a",
-        source: "ICE_WEB",
-        securityType: "apiKey",
-        responseFormat: "JSON",
-        type: "cn-dep",
-      },
-      requestPayloadData: {
-        selectedImmunization: ["CVD"],
-        distanceInMiles: 35,
-        imzData: [
-          {
-            imzType: "CVD",
-            ndc: ["59267100002", "59267100003", "59676058015", "80777027399"],
-            allocationType: "1",
-          },
-        ],
-        searchCriteria: { addressLine: zip },
-      },
-    })
-    .set("authority", "www.cvs.com")
-    .set("pragma", "no-cache")
-    .set("cache-control", "no-cache")
-    .set(
-      "sec-ch-ua",
-      '"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"'
-    )
-    .set("accept", "application/json")
-    .set("sec-ch-ua-mobile", "?0")
-    .set(
-      "user-agent",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
-    )
-    .set("content-type", "application/json")
-    .set("origin", "https://www.cvs.com")
-    .set("sec-fetch-site", "same-origin")
-    .set("sec-fetch-mode", "cors")
-    .set("sec-fetch-dest", "empty")
-    .set(
-      "referer",
-      "https://www.cvs.com/vaccine/intake/store/cvd-store-select/first-dose-select"
-    )
-    .set("sec-gpc", "1");
-}
+const cvsApi = require("./cvs-api");
+const mailUtil = require("./mail-util");
 
 exports.handler = async (event, context, callback) => {
-  let zipCodes = (await fs.readFile("zip_codes.txt")).toString().split("\n");
-  let appointments = [];
-  let errors = [];
-  let allResponses = [];
+  let zipCodes = (await fs.readFile("zip_codes.txt")).toString().split("\n"),
+    appointments = [],
+    errors = [],
+    allResponses = [];
 
   for (let zipCode of zipCodes) {
     try {
       console.log("Trying " + zipCode + "...");
-      let res = await getAppointmentsByZip(zipCode);
+      // let res = await cvsApi.getAppointmentsNearZipCode(zipCode);
+      let res = {
+        body: {
+          responseMetaData: {
+            statusCode: "0000",
+            statusDesc: "Success",
+            conversationID: "Id-442c516051852a4cb5f2723d",
+            refId: "Id-442c516051852a4cb5f2723d",
+          },
+          responsePayloadData: {
+            schedulerRefType: "IMZ_STORE",
+            availableDates: [
+              "2021-03-17",
+              "2021-03-18",
+              "2021-03-19",
+              "2021-03-20",
+            ],
+            locations: [
+              {
+                StoreNumber: "04447",
+                minuteClinicID: "0",
+                opticalClinicID: "0",
+                storeType: 0,
+                covaxInd: "Y",
+                pharmacyNCPDPProviderIdentifier: "3661762",
+                addressLine: "900 BELLEFONTAINE RD",
+                addressCityDescriptionText: "LIMA",
+                addressState: "OH",
+                addressZipCode: "45804",
+                addressCountry: "US",
+                geographicLatitudePoint: "40.737000",
+                geographicLongitudePoint: "-84.090500",
+                indicatorStoreTwentyFourHoursOpen: "N",
+                indicatorPrescriptionService: "Y",
+                indicatorPhotoCenterService: "N",
+                indicatorMinuteClinicService: "N",
+                indicatorOpticalService: "N",
+                instorePickupService: "Y",
+                indicatorDriveThruService: "N",
+                indicatorPharmacyTwentyFourHoursOpen: "N",
+                rxConvertedFlag: "Y",
+                indicatorCircularConverted: "Y",
+                indicatorH1N1FluShot: "N",
+                indicatorRxFluFlag: "N",
+                indicatorWicService: "Y",
+                snapIndicator: "Y",
+                indicatorVaccineServiceSupport: "N",
+                indicatorPneumoniaShotService: "N",
+                indicatorWeeklyAd: "Y",
+                indicatorCVSStore: "Y",
+                indicatorStorePickup: "N",
+                storeLocationTimeZone: "EDT",
+                storePhonenumber: "4192277970",
+                pharmacyPhonenumber: "4192277970",
+                storeHours: {
+                  DayHours: [
+                    {
+                      Day: "MON",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "TUE",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "WED",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "THU",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "FRI",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "SAT",
+                      Hours: "10:00 AM - 06:00 PM",
+                    },
+                    {
+                      Day: "SUN",
+                      Hours: "10:00 AM - 05:00 PM",
+                    },
+                  ],
+                },
+                pharmacyHours: {
+                  DayHours: [
+                    {
+                      Day: "MON",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "TUE",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "WED",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "THU",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "FRI",
+                      Hours: "09:00 AM - 08:00 PM",
+                    },
+                    {
+                      Day: "SAT",
+                      Hours: "10:00 AM - 06:00 PM",
+                    },
+                    {
+                      Day: "SUN",
+                      Hours: "10:00 AM - 05:00 PM",
+                    },
+                  ],
+                },
+                adVersionCdCurrent: "H",
+                adVersionCdNext: "H",
+                distance: "1.86",
+                immunizationAvailability: {
+                  available: ["CVD"],
+                  unavailable: [],
+                },
+                schedulerRefId: "CVS_04447",
+                imzAdditionalData: [
+                  {
+                    imzType: "CVD",
+                    availableDates: ["2021-03-17"],
+                  },
+                ],
+                mfrName: "Pfizer",
+                additionalDoseRequired: "Y",
+              },
+            ],
+          },
+        },
+      };
       console.log(res.body.responseMetaData.statusDesc + "\n");
       allResponses.push(res.body);
       if (res.body.responseMetaData.statusDesc == "Success") {
-        res.body.responsePayloadData.locations.forEach((location) => {
-          location.imzAdditionalData.availableDates.forEach((apptDate) => {
-            appointments.push({
-              zip: location.addressZipCode,
-              address: `${location.addressLine}
-                ${location.addressCityDescriptionText} ${location.addressState} ${location.addressZipCode}`,
-              date: apptDate,
-            });
-          });
-        });
+        for (let location of res.body.responsePayloadData.locations) {
+          let dates = location.imzAdditionalData
+            .map((data) => data.availableDates)
+            .flat(2);
+
+          for (let date of dates) {
+            let appointment = {
+              address: `${location.addressLine} ${location.addressCityDescriptionText} ${location.addressState} ${location.addressZipCode}`,
+              date: date,
+            };
+            if (
+              !appointments.find(
+                (el) =>
+                  el.address == appointment.address &&
+                  el.date == appointment.date
+              )
+            )
+              appointments.push(appointment);
+          }
+        }
       }
     } catch (error) {
       console.log(error);
@@ -117,33 +182,12 @@ exports.handler = async (event, context, callback) => {
     }
   }
   console.log(appointments);
-
-  await sendEmail(
+  let body = mailUtil.getEmailBody(appointments, errors, allResponses);
+  console.log(body);
+  await mailUtil.sendEmail(
     "hello@benspowell.com",
     appointments.length + " Appointments Found",
-    `
-    <h1>Appointment Data</h1>
-    <div>
-    ${
-      appointments.length > 0
-        ? appointments.map(
-            (el) =>
-              `<h3>CVS Appointment</h3><p>${el.address}</p><p>${el.date}</p>`
-          )
-        : "No Appointments"
-    }
-    </div>
-
-    <h2>Errors</h2>
-    <div>
-    ${JSON.stringify({ errors: errors })}
-    </div>
-
-    <h2>All Responses</h2>
-    <div>
-    ${JSON.stringify({ all_responses: allResponses })}
-    </div>
-    `
+    body
   );
 };
 exports.handler();
