@@ -9,7 +9,7 @@ $ git clone https://github.com/benspowell/CovidVaxSearch.git
 $ cd CovidVaxSearch
 ```
 
-Install Dependencies:
+Install dependencies:
 
 ```
 $ npm install
