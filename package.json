@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/benspowell/CovidVaxSearch#readme",
   "dependencies": {
-    "format-json": "^1.0.3",
     "prettyoutput": "^1.2.0",
     "superagent": "^6.1.0"
   }
