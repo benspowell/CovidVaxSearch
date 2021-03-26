@@ -1,14 +1,32 @@
-# CovidVaxSearch
+# Covid Vaccine Search
 
-Check CVS pharmacy for available covid vax appointments in Ohio
+Check CVS pharmacy for available covid vaccine appointments in Ohio.
+
+Clone this repo:
+
+```
+$ git clone https://github.com/benspowell/CovidVaxSearch.git
+$ cd CovidVaxSearch
+```
+
+Install Dependencies:
+
+```
+$ npm install
+```
+
+Run:
 
 ```
 $ node index.js
 ```
 
-This will list out any available appointments in ohio, or display errors returned from the CVS API. 
+This will list out any available appointments in Ohio, or display errors returned from the CVS API.
 
-Several extra headers are needed on requests to the API to make it seem like the request is coming from a browser. Sometimes requests are refused for misuse of the API, eventually leading to blocking your IP completely. 
+Several extra headers are needed on requests to the API to make it seem like the request is coming from a browser. Sometimes requests are refused for misuse of the API, eventually leading to blocking your IP completely.
+
+## Requirements
+The latest version of node and npm can be downloaded [here](https://nodejs.org/en/).
 
 ## CVS API endpoints used
 
