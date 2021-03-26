@@ -1,6 +1,8 @@
 # Covid Vaccine Search
 
-Check CVS pharmacy for available covid vaccine appointments in Ohio.
+Check CVS pharmacy for available covid vaccine appointments in Ohio. You need to use [CVS's scheduler](https://www.cvs.com/vaccine/intake/store/cvd-schedule.html?icid=coronavirus-lp-vaccine-sd-statetool) to schedule an appointment, this just makes them easier to find.
+
+## Setup
 
 Clone this repo:
 
