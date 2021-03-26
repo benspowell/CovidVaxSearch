@@ -82,6 +82,7 @@ exports.getAppointmentsFromZips = async (zipCodes) => {
           for (let date of dates) {
             let appointment = {
               address: `${location.addressLine} ${location.addressCityDescriptionText} ${location.addressState} ${location.addressZipCode}`,
+              manufacturer: location.mfrName,
               date: date,
             };
             if (

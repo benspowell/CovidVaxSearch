@@ -3,22 +3,27 @@ const cvsApi = require("./cvs-api");
 const prettyoutput = require("prettyoutput");
 
 cvsApi.getCitiesWithVaccineAvailability().then(async (res) => {
-  let zipCodes = JSON.parse(await fs.readFile("zip_codes.json"));
-  let cityNames = res.body.responsePayloadData.data.OH.filter(
+  let allCitiesOfCvsLocations = JSON.parse(await fs.readFile("zip_codes.json"));
+  let namesOfCitiesWithApptAvailable = res.body.responsePayloadData.data.OH.filter(
     (el) => el.status == "Available"
   ).map((availableCity) => availableCity.city);
-  let citiesWithAvailability = zipCodes.filter((el) =>
-    cityNames.includes(el.city.toUpperCase())
-  );
-  if (citiesWithAvailability.length > 0) {
-    console.log("Cities with appointment availability:");
-    console.log(prettyoutput(citiesWithAvailability));
 
-    cvsApi
-      .getAppointmentsFromZips(citiesWithAvailability.map((ob) => ob.zip))
-      .then((res) => {
-        console.log(res.length + " appointments found:");
-        console.log(prettyoutput(res));
-      });
-  }
+  let citiesOfLocationsWithAvailability = allCitiesOfCvsLocations.filter((el) =>
+    namesOfCitiesWithApptAvailable.includes(el.city.toUpperCase())
+  );
+
+  console.log(
+    "Cities with CVS locations who have appointment availability:\n",
+    prettyoutput(citiesOfLocationsWithAvailability)
+  );
+
+  // Note that more requests to API = more likely to be refused,
+  // This should be `citiesOfLocationsWithAvailability` or `allCitiesOfCvsLocations`:
+  let citiesToCheck = citiesOfLocationsWithAvailability;
+
+  cvsApi
+    .getAppointmentsFromZips(citiesToCheck.map((el) => el.zip))
+    .then((res) => {
+      console.log(res.length + " appointments found:\n", prettyoutput(res));
+    });
 });
