@@ -4,9 +4,9 @@ const prettyoutput = require("prettyoutput");
 
 cvsApi.getCitiesWithVaccineAvailability().then(async (res) => {
   let allCitiesOfCvsLocations = JSON.parse(await fs.readFile("zip_codes.json"));
-  let namesOfCitiesWithApptAvailable = res.body.responsePayloadData.data.OH.filter(
-    (el) => el.status == "Available"
-  ).map((availableCity) => availableCity.city);
+  let namesOfCitiesWithApptAvailable = res.body.responsePayloadData.data.OH
+    .filter((i) => i.status == "Available")
+    .map((j) => j.city);
 
   let citiesOfLocationsWithAvailability = allCitiesOfCvsLocations.filter((el) =>
     namesOfCitiesWithApptAvailable.includes(el.city.toUpperCase())
@@ -18,7 +18,7 @@ cvsApi.getCitiesWithVaccineAvailability().then(async (res) => {
   );
 
   // Note that more requests to API = more likely to be refused,
-  // This should be `citiesOfLocationsWithAvailability` or `allCitiesOfCvsLocations`:
+  // Set this to `citiesOfLocationsWithAvailability` or `allCitiesOfCvsLocations`:
   let citiesToCheck = citiesOfLocationsWithAvailability;
 
   cvsApi

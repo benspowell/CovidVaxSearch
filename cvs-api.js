@@ -55,6 +55,7 @@ exports.getAppointmentsNearZipCode = (zip) => {
       "https://www.cvs.com/vaccine/intake/store/cvd-store-select/first-dose-select"
     );
 };
+
 exports.getCitiesWithVaccineAvailability = () => {
   return superagent
     .get(
